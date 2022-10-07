@@ -42,20 +42,20 @@ model{
   for(i in 1:obs_yrs){
     tr[i] ~ poisson(p_tr[obs_years[i]] * inc[obs_years[i]]);
   }
-  //likelihoods for observed  abundance
+  //likelihood for observed august abundance
   for(i in 1 : a_yrs){
     N_aug_obs[i] ~ lognormal(log(N_aug[a_years[i]]), N_aug_sd_obs[i]);
   }
+  //likelihood for observed september abundance
   for(i in 1 : s_yrs){
     N_sept_obs[i]  ~ lognormal(log(N_sept[s_years[i]]), N_sept_sd_obs[i]);
   }
-  //Z-score prior for observation errors for sept abundance
+  //Priors
   z_eps_sept_obs ~ std_normal();
   N_sept_sd ~ std_normal();
   N_sept_1 ~ lognormal(0,6);
   z_eps_aug ~ std_normal();
   z_eps_tr ~ std_normal();
-  //hyper prior for hierarchichal jumper ratio
   p_tr_sd ~ std_normal();
   p_aug_sd ~ std_normal();
   mu_tr ~ normal(0,3);

@@ -4033,20 +4033,20 @@ formatted data as supplied to the model</p>
 ## [42]   for(i in 1:obs_yrs){                                                                           
 ## [43]     tr[i] ~ poisson(p_tr[obs_years[i]] * inc[obs_years[i]]);                                     
 ## [44]   }                                                                                              
-## [45]   //likelihoods for observed  abundance                                                          
+## [45]   //likelihood for observed august abundance                                                     
 ## [46]   for(i in 1 : a_yrs){                                                                           
 ## [47]     N_aug_obs[i] ~ lognormal(log(N_aug[a_years[i]]), N_aug_sd_obs[i]);                           
 ## [48]   }                                                                                              
-## [49]   for(i in 1 : s_yrs){                                                                           
-## [50]     N_sept_obs[i]  ~ lognormal(log(N_sept[s_years[i]]), N_sept_sd_obs[i]);                       
-## [51]   }                                                                                              
-## [52]   //Z-score prior for observation errors for sept abundance                                      
-## [53]   z_eps_sept_obs ~ std_normal();                                                                 
-## [54]   N_sept_sd ~ std_normal();                                                                      
-## [55]   N_sept_1 ~ lognormal(0,6);                                                                     
-## [56]   z_eps_aug ~ std_normal();                                                                      
-## [57]   z_eps_tr ~ std_normal();                                                                       
-## [58]   //hyper prior for hierarchichal jumper ratio                                                   
+## [49]   //likelihood for observed september abundance                                                  
+## [50]   for(i in 1 : s_yrs){                                                                           
+## [51]     N_sept_obs[i]  ~ lognormal(log(N_sept[s_years[i]]), N_sept_sd_obs[i]);                       
+## [52]   }                                                                                              
+## [53]   //Priors                                                                                       
+## [54]   z_eps_sept_obs ~ std_normal();                                                                 
+## [55]   N_sept_sd ~ std_normal();                                                                      
+## [56]   N_sept_1 ~ lognormal(0,6);                                                                     
+## [57]   z_eps_aug ~ std_normal();                                                                      
+## [58]   z_eps_tr ~ std_normal();                                                                       
 ## [59]   p_tr_sd ~ std_normal();                                                                        
 ## [60]   p_aug_sd ~ std_normal();                                                                       
 ## [61]   mu_tr ~ normal(0,3);                                                                           
