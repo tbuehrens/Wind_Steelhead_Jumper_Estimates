@@ -144,8 +144,9 @@ ggplot(jr, aes(x=year,y=`50%`))+
   geom_line()+
   ylab("Jumper Ratio")+
   theme_bw()+
-  ylim(0,NA)
-
+  scale_y_log10(limits = c(1,NA)) +
+  annotation_logticks(side="l")  
+  
 jr%>%
   dplyr::rename(spawn_year = year)%>%
   kbl(caption = "Table 1.The ratio of wild steelhead jumping Shipherd Falls to the number caught in the trap between the August and September Snorkels (aka the `Jumper Ratio')",digits =3)%>%
