@@ -31,7 +31,7 @@ transformed parameters{
   vector<lower=0,upper=1>[yrs] p_aug;//annual august proportion of september abundance
   vector<lower=0,upper=1>[yrs] p_tr;//annual proportion trapped between august and september
   N_sept[1] = N_sept_1;
-  N_sept[2:yrs] = exp(log(N_sept_1) + z_eps_sept_obs * N_sept_sd);
+  N_sept[2:yrs] = exp(log(N_sept_1) + cumulative_sum(z_eps_sept_obs * N_sept_sd));
   p_aug = inv_logit(mu_aug + z_eps_aug * p_aug_sd);
   p_tr = inv_logit(mu_tr + z_eps_tr * p_tr_sd);
   N_aug = N_sept .* p_aug;

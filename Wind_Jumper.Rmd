@@ -107,7 +107,7 @@ if(!file.exists("results/jumper_results.rds")){
     model<-stan_model("model/jumper.stan")
     saveRDS(model,"model/model.rds")
   }else{
-   model<-readRDS("model/model.rds")
+    model<-readRDS("model/model.rds")
   }
 m1 <-sampling(
     object = model,
