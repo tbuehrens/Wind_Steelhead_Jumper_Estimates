@@ -1,0 +1,202 @@
+---
+title: "Wind Summer Steelhead Mark-Resight and \"jumper\" ratio estimates from August
+  to September"
+author: Thomas Buehrens (tbuehrens@dfw.wa.gov) & Charlie Cochran (patrick.cochran@dfw.wa.gov)
+output:
+  html_document:
+    code_folding: hide
+    fig_caption: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+<script>
+   $(document).ready(function() {
+     $head = $('#header');
+     $head.prepend('<img src=\"https://privatelands.wdfw.wa.gov/wdfwlogo_clrnotxt.png"\" style=\"float: right;width: 150px;\"/>')
+   });
+</script>
+
+***
+
+Last Updated `r format(Sys.time(), '%m/%d/%Y')`.
+
+***
+
+```{r setup, include=FALSE,echo = TRUE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background
+Estimates of Wind River wild summer steelhead runsize above Shipherd Falls are made by tagging the subset of summer steelhead that use the fish ladder (while others jump the falls) as they pass upstream. Riverscape snorkel surveys are conducted in August and September to enumerate tagged and un-tagged steelhead upstream of the falls, and enable abundance estimation via a lincoln-petersen estimate.These estimates are incomplete because steelhead continue to pass the falls after the September survey. Sometime in the fall, usually in October, a combination of high flows and decreasing temperatures preclude summer steelhead from jumping the falls from that point on until the migration has ended for that spawn year in the following spring. However, from the September snorkel until the end of the jumping period, the falls trap count is not a census count and therefore must be expanded to account for steelhead that jumped the falls and were not caught in the trap.To accomplish this a jumper ratio is calculated as:
+
+Equation. 1):
+
+(September Snorkel Abundance - August Snorkel Abundance) / (September Snorkel Trap Count - August Snorkel Trap Count)
+
+This "jumper ratio" is then multiplied by trap counts between the September snorkel and the end of the jumping period to account for untrapped fish.
+
+The final abundance estimate is the sum of:
+1) the September snorkel abundance
+2) the jumper ratio expanded trap count between September and the end of the jumping period
+3) a census count of steelhead trapped between the end of jumping and the end of the run.
+
+The actual equations used to calculate the jumper ratio differ from equation 1 in order to account for and propagate uncertainty in abundance estimates, and noise in the trap counts due to discreteness. Full details are shown in the data and model appendices below.
+```{r functions and packages,message = FALSE, warning = FALSE,results = "hide"}
+#function to install or load packages
+install_or_load_pack <- function(pack){
+  create.pkg <- pack[!(pack %in% installed.packages()[, "Package"])]
+  if (length(create.pkg))
+    install.packages(create.pkg, dependencies = TRUE,repos = "http://cran.us.r-project.org")
+  sapply(pack, require, character.only = TRUE)
+}
+
+packages<-c("tidyverse","rstan","ggplot2","kableExtra")
+install_or_load_pack(packages)
+```
+
+```{r load data,message = FALSE, warning = FALSE,results = "hide"}
+
+
+dat<-read_csv("data/jumper_data.csv")%>%
+  dplyr::rename(
+    tr = trap_count_septminusaug,
+    N_aug_obs = august_estimate,
+    N_sept_obs = september_estimate, 
+  )%>%
+  mutate(
+    N_aug_sd_obs = sqrt(log(august_cv^2+1)) ,
+    N_sept_sd_obs = sqrt(log(september_cv^2+1))
+  )
+
+
+years = min(dat$year) : max(dat$year)
+years = years - min(years) + 1
+yrs=length(years)
+a_years = years[!is.na(dat$N_aug_sd_obs)]
+a_yrs = length(a_years)
+s_years = years[!is.na(dat$N_sept_sd_obs)]
+s_yrs = length(s_years)
+obs_years = s_years[s_years%in%a_years]
+obs_yrs = length(obs_years)
+
+stan_dat<-dat%>%
+  as.list()
+
+stan_dat$years = years
+stan_dat$yrs = yrs
+stan_dat$a_years = a_years
+stan_dat$a_yrs = a_yrs
+stan_dat$s_years = s_years
+stan_dat$s_yrs = s_yrs
+stan_dat$obs_years = obs_years
+stan_dat$obs_yrs = obs_yrs
+
+stan_dat<-lapply(stan_dat,function(x) x[!is.na(x)])
+```
+
+```{r fit stan model,message = FALSE, warning = FALSE,results = "hide"}
+# run the MCMC 
+if(!file.exists("results/jumper_results.rds")){
+  start.time<-Sys.time()
+  if(!file.exists("model/model.rds")){  
+    model<-stan_model("model/jumper.stan")
+    saveRDS(model,"model/model.rds")
+  }else{
+   model<-readRDS("model/model.rds")
+  }
+m1 <-sampling(
+    object = model,
+    data=stan_dat,
+    #inits=0,
+    cores = 4,
+    chains=4, #Number of chains
+    iter=4000, #number of iterations
+    warmup=2000, #number of burn in
+    thin=1 #thinning rate
+  )
+  end.time<-Sys.time();print(end.time-start.time)
+  
+  #save jags run, results
+  saveRDS(m1,"results/jumper_results.rds")
+  write.csv(summary(m1)$summary,"results/summary.csv")
+}else{
+  m1<-readRDS("results/jumper_results.rds")
+}
+```
+## Results
+
+Below are plots and tables of the "jumper ratio" and model smoothed vs. raw "observed" mark-recapture abundance estimates in August and September.
+```{r results,message = FALSE, warning = FALSE,results = "show"}
+results<-rstan::extract(m1)
+
+jr<-t(apply(1/results$p_tr,2,function(x) quantile(x,c(0.025,0.25,0.5,0.75,0.975))))%>%
+  as_tibble()%>%
+  bind_cols(tibble(year=min(dat$year):max(dat$year)))
+
+ggplot(jr, aes(x=year,y=`50%`))+
+  geom_ribbon(aes(ymin=`2.5%`,ymax=`97.5%`),fill="cadetblue",color="NA",alpha=0.5)+
+  geom_ribbon(aes(ymin=`25%`,ymax=`75%`),fill="cadetblue",color="NA",alpha=0.5)+
+  geom_line()+
+  ylab("Jumper Ratio")+
+  theme_bw()+
+  ylim(0,NA)
+
+jr%>%
+  dplyr::rename(spawn_year = year)%>%
+  kbl(caption = "Table 1.The ratio of wild steelhead jumping Shipherd Falls to the number caught in the trap between the August and September Snorkels (aka the `Jumper Ratio')",digits =3)%>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+
+N_aug<-t(apply(results$N_aug,2,function(x) quantile(x,c(0.025,0.25,0.5,0.75,0.975))))%>%
+  as_tibble()%>%
+  bind_cols(tibble(year=min(dat$year):max(dat$year)))%>%
+  left_join(dat%>%dplyr::select(year,N_aug_obs,august_l95,august_u95))
+
+ggplot(N_aug, aes(x=year,y=`50%`))+
+  geom_ribbon(aes(ymin=`2.5%`,ymax=`97.5%`),fill="cadetblue",color="NA",alpha=0.5)+
+  geom_ribbon(aes(ymin=`25%`,ymax=`75%`),fill="cadetblue",color="NA",alpha=0.5)+
+  geom_line()+
+  geom_errorbar(aes(ymax = august_u95,ymin=august_l95),width = 0.25)+
+  geom_point(aes(x=year,y=N_aug_obs))+
+  ylab("Abundance")+
+  theme_bw()+
+  ylim(0,NA)
+
+N_aug%>%
+  dplyr::rename(spawn_year = year)%>%
+  kbl(caption = "Table 2.The smoothed  & observed August Mark-Resight Abundance of Wild Wind River Steelhead",digits =3)%>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+N_sept<-t(apply(results$N_sept,2,function(x) quantile(x,c(0.025,0.25,0.5,0.75,0.975))))%>%
+  as_tibble()%>%
+  bind_cols(tibble(year=min(dat$year):max(dat$year)))%>%
+  left_join(dat%>%dplyr::select(year,N_sept_obs,september_l95,september_u95))
+
+ggplot(N_sept, aes(x=year,y=`50%`))+
+  geom_ribbon(aes(ymin=`2.5%`,ymax=`97.5%`),fill="cadetblue",color="NA",alpha=0.5)+
+  geom_ribbon(aes(ymin=`25%`,ymax=`75%`),fill="cadetblue",color="NA",alpha=0.5)+
+  geom_line()+
+  geom_errorbar(aes(ymax = september_u95,ymin=september_l95), width = 0.25)+
+  geom_point(aes(x=year,y=N_sept_obs))+
+  ylab("September Abundance")+
+  theme_bw()+
+  ylim(0,NA)
+
+N_sept%>%
+  dplyr::rename(spawn_year = year)%>%
+  kbl(caption = "Table 3.The smoothed & observed September Mark-Resight Abundance of Wild Wind River Steelhead",digits =3)%>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+## Appendices
+Below is the model used to estimate the jumper ratio, and the formatted data as supplied to the model
+```{r model and data,message = FALSE, warning = FALSE,results = "show"}
+noquote(read_lines("model/jumper.stan"))
+
+print(stan_dat)
+```
