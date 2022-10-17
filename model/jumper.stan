@@ -61,3 +61,9 @@ model{
   mu_tr ~ normal(0,3);
   mu_aug ~ normal(0,3);
 }
+generated quantities{
+  real hier_z_eps_tr;
+  real hier_p_tr;
+  hier_z_eps_tr = normal_rng(0,1);
+  hier_p_tr = inv_logit(mu_tr + hier_z_eps_tr * p_tr_sd);
+}

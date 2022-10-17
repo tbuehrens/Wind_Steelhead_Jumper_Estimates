@@ -144,8 +144,9 @@ ggplot(jr, aes(x=year,y=`50%`))+
   geom_line()+
   ylab("Jumper Ratio")+
   theme_bw()+
-  scale_y_log10(limits = c(1,NA)) +
-  annotation_logticks(side="l")  
+  scale_y_log10(limits=c(.1,60))+
+  annotation_logticks(side="l")
+
   
 jr%>%
   dplyr::rename(spawn_year = year)%>%
@@ -191,6 +192,17 @@ ggplot(N_sept, aes(x=year,y=`50%`))+
 N_sept%>%
   dplyr::rename(spawn_year = year)%>%
   kbl(caption = "Table 3.The smoothed & observed September Mark-Resight Abundance of Wild Wind River Steelhead",digits =3)%>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+
+hier_jr<-quantile(1/results$hier_p_tr,c(0.025,0.25,0.5,0.75,0.975))%>%
+  as.data.frame()%>%
+  rownames_to_column()%>%
+  dplyr::rename(quant="rowname",hier_jr=".")%>%
+  as_tibble()
+
+hier_jr%>%
+  kbl(caption = "Table 4.The hierarchical jumper rate" ,digits =3)%>%
   kable_classic(full_width = F, html_font = "Cambria")
 ```
 
