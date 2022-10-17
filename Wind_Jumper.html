@@ -3987,7 +3987,7 @@ september_u95
 <pre class="r"><code>hier_jr&lt;-quantile(1/results$hier_p_tr,c(0.025,0.25,0.5,0.75,0.975))%&gt;%
   as.data.frame()%&gt;%
   rownames_to_column()%&gt;%
-  dplyr::rename(quant=&quot;rowname&quot;,hier_jr=&quot;.&quot;)%&gt;%
+  dplyr::rename(quantile =&quot;rowname&quot;,hier_jr=&quot;.&quot;)%&gt;%
   as_tibble()
 
 hier_jr%&gt;%
@@ -4000,7 +4000,7 @@ Table 4.The hierarchical jumper rate
 <thead>
 <tr>
 <th style="text-align:left;">
-quant
+quantile
 </th>
 <th style="text-align:right;">
 hier_jr

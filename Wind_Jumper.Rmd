@@ -198,7 +198,7 @@ N_sept%>%
 hier_jr<-quantile(1/results$hier_p_tr,c(0.025,0.25,0.5,0.75,0.975))%>%
   as.data.frame()%>%
   rownames_to_column()%>%
-  dplyr::rename(quant="rowname",hier_jr=".")%>%
+  dplyr::rename(quantile ="rowname",hier_jr=".")%>%
   as_tibble()
 
 hier_jr%>%
