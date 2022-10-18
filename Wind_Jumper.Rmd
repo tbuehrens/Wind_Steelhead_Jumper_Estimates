@@ -237,7 +237,7 @@ p_aug%>%
 # 
 # summary(lm(logit(`50%`)~mean_water_temp,data=p_aug))
 # 
-# auto.arima(logit(p_aug$`50%`),xreg=as.matrix(p_aug$mean_water_temp))
+#auto.arima(logit(p_aug$`50%`),xreg=as.matrix(p_aug$mean_water_temp))
 
 ```
 
