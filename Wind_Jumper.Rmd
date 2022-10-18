@@ -144,7 +144,7 @@ ggplot(jr, aes(x=year,y=`50%`))+
   geom_line()+
   ylab("Jumper Ratio")+
   theme_bw()+
-  scale_y_log10(limits=c(.1,60))+
+  scale_y_log10(limits=c(1,40))+
   annotation_logticks(side="l")
 
   

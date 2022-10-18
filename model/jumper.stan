@@ -18,11 +18,11 @@ parameters{
   real<lower=0> N_sept_sd;//september abundance process error sd
   real<lower=0> N_sept_1;//september abundance in first year
   vector[yrs] z_eps_tr;//scaled random effect for proportion trapped between august and september
-  vector[yrs] z_eps_aug;//scaled random effect for august abundance as proportion of september
+  vector[yrs-1] z_eps_aug;//scaled random effect for august abundance as proportion of september
   real<lower=0> p_tr_sd;//process error sd for proportion trapped between august and september
   real<lower=0> p_aug_sd;//process error sd for august abundance as proportion of september
   real mu_tr;//logit mean august abundance as proportion of september
-  real mu_aug;//logit mean proportion trapped between august and september
+  real p_aug_1;//logit mean proportion trapped between august and september
 }
 transformed parameters{
   vector<lower=0>[yrs] N_sept;//state estimate of september abundance
@@ -32,7 +32,8 @@ transformed parameters{
   vector<lower=0,upper=1>[yrs] p_tr;//annual proportion trapped between august and september
   N_sept[1] = N_sept_1;
   N_sept[2:yrs] = exp(log(N_sept_1) + cumulative_sum(z_eps_sept_obs * N_sept_sd));
-  p_aug = inv_logit(mu_aug + z_eps_aug * p_aug_sd);
+  p_aug[1] = p_aug_1;
+  p_aug[2:yrs] = inv_logit(logit(p_aug_1) + cumulative_sum(z_eps_aug * p_aug_sd));
   p_tr = inv_logit(mu_tr + z_eps_tr * p_tr_sd);
   N_aug = N_sept .* p_aug;
   inc = N_sept - N_aug;
@@ -56,10 +57,10 @@ model{
   N_sept_1 ~ lognormal(0,6);
   z_eps_aug ~ std_normal();
   z_eps_tr ~ std_normal();
-  p_tr_sd ~ std_normal();
+  p_tr_sd ~ cauchy(0,2.5);
   p_aug_sd ~ std_normal();
   mu_tr ~ normal(0,3);
-  mu_aug ~ normal(0,3);
+  p_aug_1 ~ beta(1,1);
 }
 generated quantities{
   real hier_z_eps_tr;
