@@ -150,9 +150,18 @@ ggplot(jr, aes(x=year,y=`50%`))+
   
 jr%>%
   dplyr::rename(spawn_year = year)%>%
-  kbl(caption = "Table 1.The ratio of wild steelhead jumping Shipherd Falls to the number caught in the trap between the August and September Snorkels (aka the `Jumper Ratio')",digits =3)%>%
+  kbl(caption = "Table 1.The ratio of wild steelhead jumping Shipherd Falls to the number caught in the trap between the August and September snorkels (aka the `Jumper Ratio')",digits =3)%>%
   kable_classic(full_width = F, html_font = "Cambria")
 
+hier_jr<-quantile(1/results$hier_p_tr,c(0.025,0.25,0.5,0.75,0.975))%>%
+  as.data.frame()%>%
+  rownames_to_column()%>%
+  dplyr::rename(quantile ="rowname",hier_jr=".")%>%
+  as_tibble()
+
+hier_jr%>%
+  kbl(caption = "Table 2.The hierarchical jumper rate" ,digits =3)%>%
+  kable_classic(full_width = F, html_font = "Cambria")
 
 N_aug<-t(apply(results$N_aug,2,function(x) quantile(x,c(0.025,0.25,0.5,0.75,0.975))))%>%
   as_tibble()%>%
@@ -171,7 +180,7 @@ ggplot(N_aug, aes(x=year,y=`50%`))+
 
 N_aug%>%
   dplyr::rename(spawn_year = year)%>%
-  kbl(caption = "Table 2.The smoothed  & observed August Mark-Resight Abundance of Wild Wind River Steelhead",digits =3)%>%
+  kbl(caption = "Table 3.The smoothed  & observed August mark-resight abundance of wild Wind River summer steelhead",digits =3)%>%
   kable_classic(full_width = F, html_font = "Cambria")
 
 N_sept<-t(apply(results$N_sept,2,function(x) quantile(x,c(0.025,0.25,0.5,0.75,0.975))))%>%
@@ -191,19 +200,28 @@ ggplot(N_sept, aes(x=year,y=`50%`))+
 
 N_sept%>%
   dplyr::rename(spawn_year = year)%>%
-  kbl(caption = "Table 3.The smoothed & observed September Mark-Resight Abundance of Wild Wind River Steelhead",digits =3)%>%
+  kbl(caption = "Table 4.The smoothed & observed September mark-resight abundance of wild Wind River summer steelhead",digits =3)%>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+p_aug<-t(apply(results$p_aug,2,function(x) quantile(x,c(0.025,0.25,0.5,0.75,0.975))))%>%
+  as_tibble()%>%
+  bind_cols(tibble(year=min(dat$year):max(dat$year)))
+
+ggplot(p_aug, aes(x=year,y=`50%`))+
+  geom_ribbon(aes(ymin=`2.5%`,ymax=`97.5%`),fill="cadetblue",color="NA",alpha=0.5)+
+  geom_ribbon(aes(ymin=`25%`,ymax=`75%`),fill="cadetblue",color="NA",alpha=0.5)+
+  geom_line()+
+  ylab("August Abundance as a proportion of September Abundance")+
+  theme_bw()+
+  ylim(0,1)
+
+p_aug%>%
+  dplyr::rename(spawn_year = year)%>%
+  kbl(caption = "Table 5.August abundance as a proportion of September abundance of wild Wind River summer steelhead",digits =3)%>%
   kable_classic(full_width = F, html_font = "Cambria")
 
 
-hier_jr<-quantile(1/results$hier_p_tr,c(0.025,0.25,0.5,0.75,0.975))%>%
-  as.data.frame()%>%
-  rownames_to_column()%>%
-  dplyr::rename(quantile ="rowname",hier_jr=".")%>%
-  as_tibble()
 
-hier_jr%>%
-  kbl(caption = "Table 4.The hierarchical jumper rate" ,digits =3)%>%
-  kable_classic(full_width = F, html_font = "Cambria")
 ```
 
 ## Appendices
