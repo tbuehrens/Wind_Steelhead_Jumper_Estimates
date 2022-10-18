@@ -229,13 +229,15 @@ p_aug%>%
   kbl(caption = "Table 5.August abundance as a proportion of September abundance of wild Wind River summer steelhead",digits =3)%>%
   kable_classic(full_width = F, html_font = "Cambria")
 
-ggplot(p_aug, aes(x=mean_water_temp,y=logit(`50%`)))+
-  geom_point()+
-  ylab("logit(p_aug)")+
-  geom_smooth(method='lm', formula= y~x)+
-  theme_bw()
-
-summary(lm(logit(`50%`)~mean_water_temp,data=p_aug))
+# ggplot(p_aug, aes(x=mean_water_temp,y=logit(`50%`)))+
+#   geom_point()+
+#   ylab("logit(p_aug)")+
+#   geom_smooth(method='lm', formula= y~x)+
+#   theme_bw()
+# 
+# summary(lm(logit(`50%`)~mean_water_temp,data=p_aug))
+# 
+# auto.arima(logit(p_aug$`50%`),xreg=as.matrix(p_aug$mean_water_temp))
 
 ```
 
